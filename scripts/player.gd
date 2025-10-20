@@ -1,10 +1,13 @@
-extends CharacterBody2D
+extends GenericCharacter
+class_name Player
 
+func _ready() -> void:
+	anim_player = $AnimationPlayer
+	sprite = $Sprite2D
+	anim_player.play("Idle")
 
 const SPEED = 300.0
 const JUMP_VELOCITY = -400.0
-
-@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
@@ -20,11 +23,15 @@ func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis("ui_left", "ui_right")
 	if direction:
 		velocity.x = direction * SPEED
-		animated_sprite.play("run")
+		anim_player.play("Run")
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
-		animated_sprite.play("idle")
+		anim_player.play("Idle")
+	sprite.flip_h = direction < 0
+	
+	if Input.is_action_just_pressed("Attack") :
+		anim_player.play("Attack")
 
-	animated_sprite.flip_h = direction < 0
+	
 
 	move_and_slide()

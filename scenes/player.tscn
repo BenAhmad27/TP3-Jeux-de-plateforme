@@ -1,13 +1,47 @@
-[gd_scene load_steps=7 format=3 uid="uid://co806t5p15df4"]
+[gd_scene load_steps=13 format=3 uid="uid://co806t5p15df4"]
 
-[ext_resource type="Texture2D" uid="uid://dn2ir0xnhk6k5" path="res://assets/sprites/knight.png" id="1_4flbx"]
 [ext_resource type="Script" uid="uid://bj1d2pskcd3ep" path="res://scripts/player.gd" id="1_onrkg"]
+[ext_resource type="Texture2D" uid="uid://jsj275i3vs65" path="res://assets/sprites/viking2.png" id="2_dqkch"]
+[ext_resource type="Script" uid="uid://dkxnkc55aoag" path="res://scenes/idle_state.gd" id="3_qlg0r"]
+[ext_resource type="Script" uid="uid://drbx5r8os7uvu" path="res://scenes/run_state.gd" id="4_tuyoq"]
+[ext_resource type="Script" uid="uid://1wq8xgkgorxe" path="res://scenes/attack_state.gd" id="5_qlg0r"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4flbx"]
-size = Vector2(9, 6.5)
+size = Vector2(26, 18)
 
-[sub_resource type="Animation" id="Animation_g2els"]
+[sub_resource type="Animation" id="Animation_y4r1p"]
+resource_name = "Attack"
+length = 0.7
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0490358, 0.1, 0.166667, 0.233333, 0.3, 0.366667, 0.4, 0.466667, 0.533333, 0.6, 0.666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [27, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
+}
+
+[sub_resource type="Animation" id="Animation_fjrip"]
 resource_name = "Idle"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [1, 1, 1, 2, 3, 4, 5, 6]
+}
+
+[sub_resource type="Animation" id="Animation_smehm"]
+length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -18,36 +52,102 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [0]
+"values": [1]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_qhqgy"]
+[sub_resource type="Animation" id="Animation_ur7pv"]
+resource_name = "Run"
+length = 0.9
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0666667, 0.133333, 0.2, 0.3, 0.4, 0.5, 0.566667, 0.633333, 0.666667, 0.7, 0.766667, 0.833333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [9, 10, 11, 12, 22, 13, 14, 18, 19, 20, 21, 10, 9]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_d2wvv"]
 _data = {
-&"Idle": SubResource("Animation_g2els")
+&"Attack": SubResource("Animation_y4r1p"),
+&"Idle": SubResource("Animation_fjrip"),
+&"RESET": SubResource("Animation_smehm"),
+&"Run": SubResource("Animation_ur7pv")
 }
 
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_dqkch"]
-states/End/position = Vector2(841, 84)
-states/Start/position = Vector2(104, 84)
+[sub_resource type="GDScript" id="GDScript_3v2ag"]
+script/source = "extends Node
+
+@export var initial_state : BaseState
+var current_state : BaseState
+var states : Dictionary = {}
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	for child in get_children():
+		if child is BaseState:
+			states[child.name.to_lower()] = child
+			child.Transitioned.connect(on_child_transition)
+	
+	if initial_state :
+		initial_state.enter()
+		current_state = initial_state
+	
+func _process(delta: float) -> void:
+	if current_state:
+		current_state.update(delta)
+
+func _physics_process(delta: float) -> void:
+	if current_state:
+		current_state.physics_update(delta)
+
+func on_child_transition(state, new_state_name):
+	if state != current_state:
+		return
+	
+	var new_state = states.get(new_state_name.to_lower())
+	
+	if !new_state:
+		return
+		
+	if current_state:
+		current_state.exit()
+		
+	new_state.enter()
+	current_state = new_state
+"
 
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_onrkg")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-0.5, -4.25)
+position = Vector2(-1, 2)
 shape = SubResource("RectangleShape2D_4flbx")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-1, -5)
+texture = ExtResource("2_dqkch")
+hframes = 9
+vframes = 6
+frame = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-&"": SubResource("AnimationLibrary_qhqgy")
+&"": SubResource("AnimationLibrary_d2wvv")
 }
-movie_quit_on_finish = true
 
-[node name="AnimationTree" type="AnimationTree" parent="."]
-tree_root = SubResource("AnimationNodeStateMachine_dqkch")
-anim_player = NodePath("../AnimationPlayer")
+[node name="StateMachine" type="Node" parent="."]
+script = SubResource("GDScript_3v2ag")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1_4flbx")
-hframes = 8
-vframes = 6
+[node name="IdleState" type="Node" parent="StateMachine"]
+script = ExtResource("3_qlg0r")
+
+[node name="RunState" type="Node" parent="StateMachine"]
+script = ExtResource("4_tuyoq")
+
+[node name="AttackState" type="Node" parent="StateMachine"]
+script = ExtResource("5_qlg0r")
