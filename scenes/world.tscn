@@ -17,11 +17,13 @@ size = Vector2(600, 18)
 show_behind_parent = true
 top_level = true
 position = Vector2(-1, -6)
+scale = Vector2(5, 5)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 position = Vector2(1, 2)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
+scale = Vector2(3, 3)
 
 [node name="ColorRect" type="ColorRect" parent="StaticBody2D"]
 offset_left = -54.0
@@ -34,8 +36,9 @@ position = Vector2(246, 14)
 shape = SubResource("RectangleShape2D_f3sb7")
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
-offset = Vector2(960, 540)
-transform = Transform2D(1, 0, 0, 1, 960, 540)
+offset = Vector2(910, 100)
+scale = Vector2(0.75, 0.75)
+transform = Transform2D(0.75, 0, 0, 0.75, 910, 100)
 
 [node name="sky" type="ParallaxLayer" parent="ParallaxBackground"]
 motion_scale = Vector2(0, 0)
@@ -43,6 +46,7 @@ motion_offset = Vector2(0, -3.14)
 motion_mirroring = Vector2(1920, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/sky"]
+position = Vector2(-4, 0)
 texture = ExtResource("2_i7141")
 
 [node name="rocks" type="ParallaxLayer" parent="ParallaxBackground"]
